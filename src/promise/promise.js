@@ -12,11 +12,20 @@ var asap = require('./asap');
 function resolve(promise, value) {
   promise._state = FULFILLED;
   promise._result = value;
+  asap(publish, promise);
+}
+
+function publish(promise) {
   var subscribes = promise._subscribes;
+  var value = promise._result;
+  if(subscribes.length === 0)  { return; }
   for(var i = 0; i< subscribes.length; i+=3) {
     var child = subscribes[i];
     var callback = subscribes[i + promise._state];
-    callback(value);
+    var v = callback(value);
+    if(child) {
+      resolve(child, v);
+    }
   }
 }
 
@@ -60,6 +69,7 @@ Promise.prototype.then = function(resolve, reject) {
   var child = new Promise(noop);
   //增加观察者
   subscribe(parent, child, resolve, reject);
+  return child;
 };
 
 module.exports = Promise;
