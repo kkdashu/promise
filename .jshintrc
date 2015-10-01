@@ -1,0 +1,10 @@
+{
+  "undef": true,
+  "unused": true,
+  "bitwise": false,
+  "predef": ["kui", "kyo", "userBaseInfo"],
+  "jquery": true,
+  "node": true,
+  "mocha": true,
+  "browser": ["console", "alert"]
+}
