@@ -5,3 +5,7 @@ exports.isFunction = function(fun) {
 exports.objectOrFunction = function(obj) {
   return typeof obj === 'function' || (typeof obj === 'object' && obj !== null);
 };
+
+exports.isFunction = function(obj) {
+  return typeof obj === 'function';
+};

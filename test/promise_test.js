@@ -5,6 +5,27 @@ var PENDING = undefined,
     REJECTED = 2;
 
 describe('Promise', function() {
+  var promise;
+  beforeEach(function() {
+   promise = new Promise(function(resolve) {
+      process.nextTick(function() {
+        resolve(11);
+      });
+    });
+  });
+  it('simple example', function(done) {
+    var child = promise.then(function(v) {
+      v.should.equal(11);
+      return 12;
+    });
+    promise.then(function(v) {
+      v.should.equal(11);
+    });
+    child.then(function(v) {
+      v.should.equal(12);
+      done();
+    });
+  });
   it('promise constructor', function(done) {
     var result = 0;
     var promise = new Promise(function(resolve) {
@@ -36,4 +57,9 @@ describe('Promise', function() {
     promise.constructor.should.equal(Promise);
     result.should.equal(0);
   });
+  it('handleMaybeThenable', function(done) {
+    promise.then(function(v){
+      done();
+    });
+  })
 });

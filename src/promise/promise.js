@@ -5,14 +5,36 @@ var state =  require('./state'),
 
 var util = require('./util.js'),
     isFunction = util.isFunction,
-    objectOrFunction = util.objectOrFunction;
+    objectOrFunction = util.objectOrFunction,
+    isFunction = util.isFunction;
 
 var asap = require('./asap');
 
 function resolve(promise, value) {
+  if(promise === value) {
+    reject(promise, value);
+  } else if(objectOrFunction(value)) {
+    handleMaybeThenable(promise, value);
+  } else {
+    fulfill(promise, value);
+  }
+}
+function fulfill(promise, value) {
   promise._state = FULFILLED;
   promise._result = value;
   asap(publish, promise);
+}
+
+function handleMaybeThenable(promise, maybeThenable) {
+  if(isFunction(maybeThenable)) {
+    var value = maybeThenable();
+    fulfill(promise, value);
+  }
+}
+
+function reject(promise, value) {
+  promise._state = REJECTED;
+  promise._result = value;
 }
 
 function publish(promise) {
@@ -23,23 +45,22 @@ function publish(promise) {
     var child = subscribes[i];
     var callback = subscribes[i + promise._state];
     var v = callback(value);
-    if(child) {
-      resolve(child, v);
-    }
+    resolve(child, v);
   }
 }
 
-function reject(promise, value) {
-  promise._state = REJECTED;
-  promise._result = value;
-}
 
 function initialize(promise, resolver) {
-  resolver(function _resolve(value) {
-    resolve(promise, value);
-  }, function _reject(value) {
-    reject(promise, value);
-  });
+  try{
+    resolver(function _resolve(value) {
+      resolve(promise, value);
+    }, function _reject(value) {
+      reject(promise, value);
+    });
+  }
+  catch(e) {
+    reject(promise, e);
+  }
 }
 
 function subscribe(parent, child, onFulfillment, onRejection) {
